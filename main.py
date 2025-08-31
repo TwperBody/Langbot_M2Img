@@ -2,37 +2,13 @@
 # Please refer to https://docs.langbot.app/en/plugin/dev/tutor.html for more details.
 from __future__ import annotations
 
-import os
-import base64
-import tempfile
-from typing import Any
-
 from langbot_plugin.api.definition.plugin import BasePlugin
-from langbot_plugin.api.definition.components.common.event_listener import BaseComponent
-from langbot_plugin.api.definition.components.common.event_listener import EventListener
-from langbot_plugin.api.entities.context import EventContext
-from langbot_plugin.api.entities.events import PersonCommandSent, GroupCommandSent
-from langbot_plugin.api.entities.events import PersonMessageReceived, GroupMessageReceived
-
-# 导入配置
-from config import DEFAULT_CONFIG, IMG_CONFIG, MARKDOWN_CONFIG, HTML_TEMPLATE, PLUGIN_CONFIG
-
-# Markdown相关导入
-from markdown import markdown
-
-# 尝试导入HTML转图片库（优先级：pydf > imgkit）
-HTML_TO_IMAGE_ENGINE = None
 try:
-    import pydf
-    HTML_TO_IMAGE_ENGINE = 'pydf'
-    print("✅ 使用 pydf (内置wkhtmltopdf) 引擎")
+    from .config import DEFAULT_CONFIG, PLUGIN_CONFIG
 except ImportError:
-    try:
-        import imgkit
-        HTML_TO_IMAGE_ENGINE = 'imgkit'
-        print("✅ 使用 imgkit (系统wkhtmltopdf) 引擎")
-    except ImportError:
-        print("❌ 未找到HTML转图片引擎")
+    # 如果相对导入失败，尝试绝对导入
+    from config import DEFAULT_CONFIG, PLUGIN_CONFIG
+
 
 class Markdown2IMGPlugin(BasePlugin):
     """Markdown转图片插件 - 将Markdown文本渲染为图片输出"""
@@ -48,342 +24,54 @@ class Markdown2IMGPlugin(BasePlugin):
             self._check_dependencies()
             # 加载用户配置
             self._load_user_config()
-            print("Markdown2IMG 插件初始化完成")
+            print("✅ Markdown2IMG插件初始化完成")
+            
         except Exception as e:
-            print(f"插件初始化失败: {e}")
-            raise
+            print(f"❌ Markdown2IMG插件初始化失败: {e}")
+            raise e
 
-    def _load_user_config(self):
+    def _check_dependencies(self) -> bool:
+        """检查系统依赖"""
+        try:
+            # 检查Markdown库
+            import markdown
+            print("✅ markdown库可用")
+            
+            # 检查HTML转图片引擎
+            html_engine_available = False
+            try:
+                import pydf
+                print("✅ pydf引擎可用")
+                html_engine_available = True
+            except ImportError:
+                try:
+                    import imgkit
+                    print("✅ imgkit引擎可用")
+                    html_engine_available = True
+                except ImportError:
+                    pass
+            
+            if not html_engine_available:
+                print("❌ 警告: 未找到HTML转图片引擎")
+                print("请安装以下任一依赖:")
+                print("1. pydf (推荐): pip install pydf")
+                print("2. imgkit: pip install imgkit + 安装wkhtmltopdf")
+                return False
+            
+            return True
+            
+        except ImportError as e:
+            print(f"❌ 依赖检查失败: {e}")
+            return False
+
+    def _load_user_config(self) -> None:
         """加载用户配置"""
         try:
-            # 从LangBot配置系统获取用户配置
-            # 在调试模式下，ap可能未初始化
-            if not hasattr(self, 'ap') or self.ap is None:
-                print("调试模式：ap未初始化，使用默认配置")
-                return
-            
-            user_config = self.ap.get_config()
-            
-            # 更新图片配置
-            if 'image_width' in user_config:
-                IMG_CONFIG['width'] = user_config['image_width']
-            if 'image_format' in user_config:
-                IMG_CONFIG['format'] = user_config['image_format']
-            if 'zoom_factor' in user_config:
-                IMG_CONFIG['zoom'] = user_config['zoom_factor']
-            if 'jpg_quality' in user_config:
-                IMG_CONFIG['quality'] = user_config['jpg_quality']
-            
-            # 更新Markdown功能开关
-            if 'enable_math' in user_config:
-                if not user_config['enable_math'] and 'mdx_math' in MARKDOWN_CONFIG['extensions']:
-                    MARKDOWN_CONFIG['extensions'].remove('mdx_math')
-                elif user_config['enable_math'] and 'mdx_math' not in MARKDOWN_CONFIG['extensions']:
-                    MARKDOWN_CONFIG['extensions'].append('mdx_math')
-            
-            if 'enable_code_highlight' in user_config:
-                if not user_config['enable_code_highlight'] and 'codehilite' in MARKDOWN_CONFIG['extensions']:
-                    MARKDOWN_CONFIG['extensions'].remove('codehilite')
-                elif user_config['enable_code_highlight'] and 'codehilite' not in MARKDOWN_CONFIG['extensions']:
-                    MARKDOWN_CONFIG['extensions'].append('codehilite')
-            
-            if 'enable_tables' in user_config:
-                if not user_config['enable_tables'] and 'tables' in MARKDOWN_CONFIG['extensions']:
-                    MARKDOWN_CONFIG['extensions'].remove('tables')
-                elif user_config['enable_tables'] and 'tables' not in MARKDOWN_CONFIG['extensions']:
-                    MARKDOWN_CONFIG['extensions'].append('tables')
-            
-            if 'enable_footnotes' in user_config:
-                if not user_config['enable_footnotes'] and 'footnotes' in MARKDOWN_CONFIG['extensions']:
-                    MARKDOWN_CONFIG['extensions'].remove('footnotes')
-                elif user_config['enable_footnotes'] and 'footnotes' not in MARKDOWN_CONFIG['extensions']:
-                    MARKDOWN_CONFIG['extensions'].append('footnotes')
-            
-            # 更新插件行为配置
-            if 'auto_convert' in user_config:
-                PLUGIN_CONFIG['auto_convert'] = user_config['auto_convert']
-            if 'min_text_length' in user_config:
-                PLUGIN_CONFIG['min_text_length'] = user_config['min_text_length']
-            if 'max_text_length' in user_config:
-                PLUGIN_CONFIG['max_text_length'] = user_config['max_text_length']
-            if 'cache_enabled' in user_config:
-                PLUGIN_CONFIG['cache_enabled'] = user_config['cache_enabled']
-            if 'cache_ttl' in user_config:
-                PLUGIN_CONFIG['cache_ttl'] = user_config['cache_ttl']
-            if 'temp_file_cleanup' in user_config:
-                PLUGIN_CONFIG['temp_file_cleanup'] = user_config['temp_file_cleanup']
-            if 'log_level' in user_config:
-                PLUGIN_CONFIG['log_level'] = user_config['log_level']
-            
-            print(f"用户配置加载完成: {user_config}")
-        except Exception as e:
-            print(f"加载用户配置失败，使用默认配置: {e}")
-
-    def _check_dependencies(self):
-        """检查系统依赖"""
-        if HTML_TO_IMAGE_ENGINE == 'pydf':
-            try:
-                # 检查pydf是否可用
-                test_html = '<html><body>test</body></html>'
-                pdf_content = pydf.generate_pdf(test_html)
-                if pdf_content:
-                    print("✅ pydf (内置wkhtmltopdf) 依赖检查通过")
-                else:
-                    raise Exception("pydf 生成测试失败")
-            except Exception as e:
-                print(f"❌ pydf 依赖检查失败: {e}")
-                print("⚠️  插件功能将受限")
-        
-        elif HTML_TO_IMAGE_ENGINE == 'imgkit':
-            try:
-                # 检查imgkit是否可用
-                imgkit.from_string('<html><body>test</body></html>', 'test.png')
-                os.remove('test.png') if os.path.exists('test.png') else None
-                print("✅ imgkit (系统wkhtmltopdf) 依赖检查通过")
-            except Exception as e:
-                print(f"❌ imgkit 依赖检查失败:\n{e}")
-                print("\n📋 安装指南:")
-                print("Windows: https://wkhtmltopdf.org/downloads.html")
-                print("macOS: brew install --cask wkhtmltopdf")  
-                print("Ubuntu/Debian: sudo apt-get install wkhtmltopdf")
-                print("CentOS/RHEL: sudo yum install wkhtmltopdf")
-                print("\n⚠️  插件功能将受限，请安装后重启插件")
-        
-        else:
-            print("❌ 未找到可用的HTML转图片引擎")
-            print("\n📋 请安装以下包之一:")
-            print("pip install python-pdf  # 推荐：内置wkhtmltopdf")
-            print("pip install imgkit      # 需要系统安装wkhtmltopdf")
-            print("\n⚠️  插件功能将受限")
-
-    async def cleanup(self) -> None:
-        """插件清理"""
-        print("Markdown2IMG 插件清理完成")
-
-    def convert_markdown_to_image(self, markdown_text: str, **kwargs) -> str:
-        """
-        将Markdown文本转换为图片的base64编码
-        
-        Args:
-            markdown_text: Markdown文本内容
-            **kwargs: 可选参数
-                - format: 输出格式 (png/jpg)
-                - width: 图片宽度
-                - zoom: 缩放比例
-                - quality: JPG质量
-        
-        Returns:
-            str: 图片的base64编码，失败时返回空字符串
-        """
-        try:
-            # 参数验证
-            if not markdown_text or len(markdown_text.strip()) < PLUGIN_CONFIG['min_text_length']:
-                print(f"文本长度不足: {len(markdown_text)}")
-                return ""
-            
-            if len(markdown_text) > PLUGIN_CONFIG['max_text_length']:
-                print(f"文本长度超限: {len(markdown_text)}")
-                return ""
-            
-            # 合并配置
-            img_settings = IMG_CONFIG.copy()
-            img_settings.update(kwargs)
-            
-            # 验证格式
-            if img_settings['format'] not in self.config['supported_formats']:
-                print(f"不支持的格式: {img_settings['format']}")
-                return ""
-            
-            print(f"开始转换Markdown文本，长度: {len(markdown_text)}")
-            
-            # 转换Markdown为HTML
-            html_content = (
-                HTML_TEMPLATE['front'] 
-                + markdown(
-                    text=markdown_text, 
-                    extensions=MARKDOWN_CONFIG['extensions'], 
-                    extension_configs=MARKDOWN_CONFIG['extension_configs']
-                )
-                + HTML_TEMPLATE['end']
-            )
-            
-            # 创建临时文件
-            with tempfile.NamedTemporaryFile(
-                suffix=f'.{img_settings["format"]}', 
-                delete=False
-            ) as temp_file:
-                temp_path = temp_file.name
-            
-            try:
-                # 根据可用引擎选择转换方法
-                if HTML_TO_IMAGE_ENGINE == 'pydf':
-                    # 使用pydf渲染HTML为PDF，然后转为图片
-                    success = self._convert_with_pydf(html_content, temp_path, img_settings)
-                elif HTML_TO_IMAGE_ENGINE == 'imgkit':
-                    # 使用imgkit渲染HTML为图片
-                    success = self._convert_with_imgkit(html_content, temp_path, img_settings)
-                else:
-                    print("❌ 无可用的HTML转图片引擎")
-                    return ""
-                
-                if not success:
-                    return ""
-                
-                # 读取图片并转换为base64
-                with open(temp_path, 'rb') as img_file:
-                    img_base64 = base64.b64encode(img_file.read()).decode()
-                
-                print(f"Markdown转图片成功，格式: {img_settings['format']}")
-                return img_base64
-                
-            finally:
-                # 清理临时文件
-                if PLUGIN_CONFIG['temp_file_cleanup'] and os.path.exists(temp_path):
-                    os.remove(temp_path)
+            # 这里可以添加从配置文件或数据库加载配置的逻辑
+            # 目前使用默认配置
+            print("✅ 配置加载完成")
             
         except Exception as e:
-            print(f"Markdown转图片失败: {e}")
-            return ""
-
-    def _convert_with_pydf(self, html_content: str, temp_path: str, img_settings: dict) -> bool:
-        """使用pydf引擎转换HTML为图片"""
-        try:
-            # pydf生成PDF
-            pdf_content = pydf.generate_pdf(html_content, 
-                                          page_size='A4',
-                                          margin_top='0.75in',
-                                          margin_bottom='0.75in',
-                                          margin_left='0.75in', 
-                                          margin_right='0.75in')
-            
-            if not pdf_content:
-                print("❌ pydf生成PDF失败")
-                return False
-            
-            # 由于pydf只能生成PDF，我们需要将PDF转换为图片
-            # 这需要额外的PDF转图片库，如pdf2image
-            try:
-                from pdf2image import convert_from_bytes
-                # 将PDF转换为图片
-                images = convert_from_bytes(pdf_content, dpi=150)
-                if images:
-                    # 保存第一页为图片
-                    image = images[0]
-                    if img_settings['format'] == 'jpg':
-                        image.save(temp_path, 'JPEG', quality=img_settings.get('quality', 90))
-                    else:
-                        image.save(temp_path, 'PNG')
-                    return True
-                else:
-                    print("❌ PDF转图片失败：无图片生成")
-                    return False
-            except ImportError:
-                print("❌ 缺少pdf2image库，无法使用pydf引擎")
-                print("请安装: pip install pdf2image")
-                return False
-                
-        except Exception as e:
-            print(f"❌ pydf转换失败: {e}")
-            return False
-
-    def _convert_with_imgkit(self, html_content: str, temp_path: str, img_settings: dict) -> bool:
-        """使用imgkit引擎转换HTML为图片"""
-        try:
-            imgkit.from_string(html_content, temp_path, options=img_settings)
-            return True
-        except Exception as e:
-            print(f"❌ imgkit转换失败: {e}")
-            return False
-
-# 创建插件实例
-plugin = Markdown2IMGPlugin()
-
-class TestMarkdownConverter(EventListener):
-    """测试Markdown转换器的命令组件"""
-    
-    def __init__(self):
-        super().__init__()
-        
-        # 注册命令处理器
-        @self.handler(PersonCommandSent)
-        async def handle_person_command(ctx: EventContext):
-            await self._handle_command(ctx)
-        
-        @self.handler(GroupCommandSent)
-        async def handle_group_command(ctx: EventContext):
-            await self._handle_command(ctx)
-    
-    async def _handle_command(self, ctx: EventContext):
-        """处理命令"""
-        event = ctx.event
-        command = event.message.text.strip()
-        
-        # 检查命令
-        if command.startswith('!md '):
-            markdown_text = command[4:]  # 移除 "!md " 前缀
-            
-            # 获取插件实例
-            plugin: Markdown2IMGPlugin = ctx.get_plugin_instance()
-            
-            # 转换Markdown为图片
-            image_base64 = plugin.convert_markdown_to_image(markdown_text)
-            
-            if image_base64:
-                # 发送图片
-                from langbot_plugin.api.entities.primitives import ImageElement
-                image_element = ImageElement(base64=image_base64)
-                await ctx.reply([image_element])
-            else:
-                await ctx.reply("转换失败，请检查Markdown格式和系统配置")
-        
-        elif command == '!md-config':
-            # 显示当前配置
-            plugin: Markdown2IMGPlugin = ctx.get_plugin_instance()
-            config_info = f"""
-当前插件配置：
-
-图片设置：
-• 宽度: {IMG_CONFIG['width']}px
-• 格式: {IMG_CONFIG['format']}
-• 缩放: {IMG_CONFIG['zoom']}x
-• JPG质量: {IMG_CONFIG['quality']}
-
-功能开关：
-• 数学公式: {'✓' if 'mdx_math' in MARKDOWN_CONFIG['extensions'] else '✗'}
-• 代码高亮: {'✓' if 'codehilite' in MARKDOWN_CONFIG['extensions'] else '✗'}
-• 表格支持: {'✓' if 'tables' in MARKDOWN_CONFIG['extensions'] else '✗'}
-• 脚注支持: {'✓' if 'footnotes' in MARKDOWN_CONFIG['extensions'] else '✗'}
-
-行为设置：
-• 自动转换: {'✓' if PLUGIN_CONFIG['auto_convert'] else '✗'}
-• 最小长度: {PLUGIN_CONFIG['min_text_length']}字符
-• 最大长度: {PLUGIN_CONFIG['max_text_length']}字符
-• 缓存开启: {'✓' if PLUGIN_CONFIG['cache_enabled'] else '✗'}
-• 日志级别: {PLUGIN_CONFIG['log_level']}
-            """
-            await ctx.reply(config_info.strip())
-        
-        elif command == '!md-help':
-            help_text = """
-Markdown转图片插件使用帮助：
-
-命令格式：
-• !md <markdown文本> - 将Markdown文本转换为图片
-• !md-config - 查看当前插件配置
-• !md-help - 显示此帮助信息
-
-支持的Markdown语法：
-• 标题: # ## ### 等
-• 粗体: **文本** 或 __文本__
-• 斜体: *文本* 或 _文本_
-• 代码: `代码` 或 ```代码块```
-• 链接: [文本](URL)
-• 图片: ![alt](URL)
-• 列表: - 或 1. 
-• 表格: | 列1 | 列2 |
-• 数学公式: $公式$ 或 $$公式$$
-
-示例：
-!md # 标题\\n这是**粗体**和*斜体*文本。
-            """
-            await ctx.reply(help_text.strip())
+            print(f"❌ 配置加载失败: {e}")
+            # 使用默认配置继续运行
+            pass

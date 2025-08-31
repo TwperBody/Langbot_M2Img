@@ -11,7 +11,7 @@ metadata:
   description:
     en_US: 'Convert Markdown text to high-quality images with support for math formulas, code blocks, tables and other Markdown syntax. Perfect for creating visual content from formatted text.'
     zh_Hans: '将Markdown文本转换为高质量图片，支持数学公式、代码块、表格等Markdown语法。完美适用于从格式化文本创建视觉内容。'
-  icon: icon.svg
+  icon: assets/icon.svg
 spec:
   config:
     # 图片渲染配置
@@ -199,7 +199,13 @@ spec:
           label:
             en_US: Error
             zh_Hans: 错误
-  components: {}
+  components:
+    EventListener:
+      fromDirs:
+      - path: components/event_listener/
+    Command:
+      fromDirs:
+      - path: components/commands/
 execution:
   python:
     path: main.py

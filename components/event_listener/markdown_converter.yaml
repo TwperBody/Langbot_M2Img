@@ -1,0 +1,6 @@
+name: markdown_converter
+description:
+  en_US: Automatically convert Markdown text in messages to images
+  zh_Hans: 自动将消息中的Markdown文本转换为图片
+priority: 100
+enabled: true 

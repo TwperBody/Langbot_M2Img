@@ -3,8 +3,8 @@ markdown>=3.5.0
 pymdown-extensions>=10.0.0
 
 # HTML转图片 - 优先方案（内置wkhtmltopdf二进制）
-python-pdf>=0.40
-pdf2image>=3.1.0
+pydf>=2.4.0
+PyMuPDF>=1.23.0
 
 # HTML转图片 - 备选方案（需要系统安装wkhtmltopdf）
 # imgkit>=1.2.3
