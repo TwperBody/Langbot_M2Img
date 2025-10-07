@@ -3,75 +3,14 @@
 from __future__ import annotations
 
 from langbot_plugin.api.definition.plugin import BasePlugin
-try:
-    from .config import DEFAULT_CONFIG, PLUGIN_CONFIG
-except ImportError:
-    # 如果相对导入失败，尝试绝对导入
-    from config import DEFAULT_CONFIG, PLUGIN_CONFIG
 
+class Markdowm2ing(BasePlugin):
 
-class Markdown2IMGPlugin(BasePlugin):
-    """Markdown转图片插件 - 将Markdown文本渲染为图片输出"""
-
-    def __init__(self):
-        super().__init__()
-        self.config = DEFAULT_CONFIG
 
     async def initialize(self) -> None:
-        """插件初始化"""
-        try:
-            # 检查系统依赖
-            self._check_dependencies()
-            # 加载用户配置
-            self._load_user_config()
-            print("✅ Markdown2IMG插件初始化完成")
-            
-        except Exception as e:
-            print(f"❌ Markdown2IMG插件初始化失败: {e}")
-            raise e
+        # Will be called when plugin is launching
+        pass
 
-    def _check_dependencies(self) -> bool:
-        """检查系统依赖"""
-        try:
-            # 检查Markdown库
-            import markdown
-            print("✅ markdown库可用")
-            
-            # 检查HTML转图片引擎
-            html_engine_available = False
-            try:
-                import pydf
-                print("✅ pydf引擎可用")
-                html_engine_available = True
-            except ImportError:
-                try:
-                    import imgkit
-                    print("✅ imgkit引擎可用")
-                    html_engine_available = True
-                except ImportError:
-                    pass
-            
-            if not html_engine_available:
-                print("❌ 警告: 未找到HTML转图片引擎")
-                print("请安装以下任一依赖:")
-                print("1. pydf (推荐): pip install pydf")
-                print("2. imgkit: pip install imgkit + 安装wkhtmltopdf")
-                return False
-            
-            return True
-            
-        except ImportError as e:
-            print(f"❌ 依赖检查失败: {e}")
-            return False
-
-    def _load_user_config(self) -> None:
-        """加载用户配置"""
-        try:
-            # 这里可以添加从配置文件或数据库加载配置的逻辑
-            # 目前使用默认配置
-            print("✅ 配置加载完成")
-            
-        except Exception as e:
-            print(f"❌ 配置加载失败: {e}")
-            # 使用默认配置继续运行
-            pass
+    def __del__(self) -> None:
+        # Will be called when plugin is terminating
+        pass
