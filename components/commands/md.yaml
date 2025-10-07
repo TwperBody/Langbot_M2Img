@@ -1,6 +1,0 @@
-name: md
-description:
-  en_US: Convert Markdown text to image using commands
-  zh_Hans: 使用命令将Markdown文本转换为图片
-priority: 100
-enabled: true 

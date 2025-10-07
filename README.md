@@ -1,12 +1,12 @@
 # Markdown2IMG 插件
 
-##非图形化系统需要安装无头浏览器
+## 非图形化系统需要安装无头浏览器
 
-##非图形化系统需要安装无头浏览器
+## 非图形化系统需要安装无头浏览器
 
-##非图形化系统需要安装无头浏览器
+## 非图形化系统需要安装无头浏览器
 
-##重要的事情说三遍
+## 重要的事情说三遍
 
 ![开发群聊](https://img.shields.io/badge/开发群聊-472263434-blue)
 ![LangBot版本](https://img.shields.io/badge/LangBot-4.3+-blue)
@@ -43,10 +43,7 @@ Markdown2IMG 是一个为 LangBot 设计的插件，可以将 Markdown 文本实
 ### 🐧 Linux 用户（推荐）
 
 ```bash
-# 1. 安装插件
-lbp install HelloPlugin
-
-# 2. 自动完成！插件会使用内置的 wkhtmltopdf
+# 1. 自动完成！插件会使用内置的 wkhtmltopdf
 # ✅ 所有依赖自动安装
 # ✅ 无需系统级别的软件安装
 # ✅ 立即可用
@@ -60,10 +57,7 @@ lbp install HelloPlugin
 **需要手动安装 wkhtmltopdf：**
 
 ```bash
-# 1. 先安装插件
-lbp install HelloPlugin
-
-# 2. 安装 wkhtmltopdf（必需）
+# 1. 安装 wkhtmltopdf（必需）
 # 访问 https://wkhtmltopdf.org/downloads.html
 # 下载 Windows 版本并安装到默认路径
 # 安装完成后插件即可正常使用
@@ -74,13 +68,10 @@ lbp install HelloPlugin
 **需要通过 Homebrew 安装 wkhtmltopdf：**
 
 ```bash
-# 1. 先安装插件
-lbp install HelloPlugin
-
-# 2. 安装 wkhtmltopdf（必需）
+# 1. 安装 wkhtmltopdf（必需）
 brew install --cask wkhtmltopdf
 
-# 3. 重启插件即可使用
+# 2. 重启插件即可使用
 ```
 
 ### 🐳 Docker 部署
@@ -91,8 +82,6 @@ brew install --cask wkhtmltopdf
 FROM python:3.10-slim
 
 # 安装 LangBot 和插件
-RUN pip install langbot
-COPY HelloPlugin /app/plugins/HelloPlugin
 
 # 插件会自动使用内置的 wkhtmltopdf
 # 无需额外的系统依赖

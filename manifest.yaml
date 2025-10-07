@@ -2,253 +2,56 @@ apiVersion: v1
 kind: Plugin
 metadata:
   author: Typer_Body
-  name: MarkDown2img
-  repository: 'https://github.com/TwperBody/Langbot_M2Img'
-  version: 0.2.0
-  label:
-    en_US: Markdown to Image Converter
-    zh_Hans: Markdown转图片工具
+  name: LangBot_MD2Ing
+  repository: 'https://github.com/TwperBody/Langbot_M2Img/tree/main'
+  version: 1.0.1
   description:
-    en_US: 'Convert Markdown text to high-quality images with support for math formulas, code blocks, tables and other Markdown syntax. Perfect for creating visual content from formatted text.'
-    zh_Hans: '将Markdown文本转换为高质量图片，支持数学公式、代码块、表格等Markdown语法。完美适用于从格式化文本创建视觉内容。'
+    en_US: 将ai内容中的markdown消息进行转换成图片
+    zh_Hans: 将ai内容中的markdown消息进行转换成图片
+  label:
+    en_US: Markdowm2ing
+    zh_Hans: Markdowm2ing
   icon: assets/icon.svg
 spec:
   config:
-    # 图片渲染配置
-    - name: image_width
+    - name: get_url
+      type: boolean
+      label: 
+        zh_Hans: 提取Markdown中的链接
+      description:
+        zh_Hans: 是否打开专门提取Markdown中的链接
+      required: true
+      default: false
+    - name: get_markdown
       type: integer
       label:
-        en_US: Image Width
-        zh_Hans: 图片宽度
+        zh_Hans: markdown转义触发量
       description:
-        en_US: Width of generated image in pixels
-        zh_Hans: 生成图片的宽度（像素）
-      default: 400
-      required: false
-    - name: image_format
-      type: select
-      label:
-        en_US: Image Format
-        zh_Hans: 图片格式
-      description:
-        en_US: Output image format
-        zh_Hans: 输出图片格式
-      default: png
-      required: false
-      options:
-        - name: png
-          label:
-            en_US: PNG
-            zh_Hans: PNG
-        - name: jpg
-          label:
-            en_US: JPG
-            zh_Hans: JPG
-    - name: zoom_factor
-      type: integer
-      label:
-        en_US: Zoom Factor
-        zh_Hans: 缩放比例
-      description:
-        en_US: Zoom factor to improve image quality (1-4)
-        zh_Hans: 缩放比例以提高图片质量 (1-4)
+        zh_Hans: 转换触发权重
+      required: true
       default: 2
-      required: false
-    - name: jpg_quality
+      name: side_of_markdown
       type: integer
       label:
-        en_US: JPG Quality
-        zh_Hans: JPG质量
+        zh_Hans: markdown图片宽度
       description:
-        en_US: Quality for JPG format (1-100, only effective for JPG)
-        zh_Hans: JPG格式的质量 (1-100，仅对JPG格式有效)
-      default: 95
-      required: false
-    
-    # Markdown功能配置
-    - name: enable_math
+        zh_Hans: markdown图片宽度
+      required: true
+      default: 800
+      name: test
       type: boolean
       label:
-        en_US: Enable Math Formulas
-        zh_Hans: 启用数学公式
+        zh_Hans: 调试输出
       description:
-        en_US: Enable LaTeX math formula rendering with MathJax
-        zh_Hans: 启用MathJax渲染LaTeX数学公式
-      default: true
-      required: false
-    - name: enable_code_highlight
-      type: boolean
-      label:
-        en_US: Enable Code Highlighting
-        zh_Hans: 启用代码高亮
-      description:
-        en_US: Enable syntax highlighting for code blocks
-        zh_Hans: 启用代码块语法高亮
-      default: true
-      required: false
-    - name: enable_tables
-      type: boolean
-      label:
-        en_US: Enable Tables
-        zh_Hans: 启用表格支持
-      description:
-        en_US: Enable table rendering support
-        zh_Hans: 启用表格渲染支持
-      default: true
-      required: false
-    - name: enable_footnotes
-      type: boolean
-      label:
-        en_US: Enable Footnotes
-        zh_Hans: 启用脚注
-      description:
-        en_US: Enable footnote support in Markdown
-        zh_Hans: 启用Markdown脚注支持
-      default: true
-      required: false
-    
-    # 插件行为配置
-    - name: auto_convert
-      type: boolean
-      label:
-        en_US: Auto Convert
-        zh_Hans: 自动转换
-      description:
-        en_US: Automatically convert detected Markdown text to images
-        zh_Hans: 自动将检测到的Markdown文本转换为图片
-      default: true
-      required: false
-    - name: min_text_length
-      type: integer
-      label:
-        en_US: Minimum Text Length
-        zh_Hans: 最小文本长度
-      description:
-        en_US: Minimum text length to trigger conversion (characters)
-        zh_Hans: 触发转换的最小文本长度（字符）
-      default: 10
-      required: false
-    - name: max_text_length
-      type: integer
-      label:
-        en_US: Maximum Text Length
-        zh_Hans: 最大文本长度
-      description:
-        en_US: Maximum text length to process (characters)
-        zh_Hans: 处理的最大文本长度（字符）
-      default: 10000
-      required: false
-    
-    # 缓存和性能配置
-    - name: cache_enabled
-      type: boolean
-      label:
-        en_US: Enable Cache
-        zh_Hans: 启用缓存
-      description:
-        en_US: Enable caching to improve performance for repeated conversions
-        zh_Hans: 启用缓存以提高重复转换的性能
-      default: true
-      required: false
-    - name: cache_ttl
-      type: integer
-      label:
-        en_US: Cache TTL (seconds)
-        zh_Hans: 缓存生存时间（秒）
-      description:
-        en_US: Cache time-to-live in seconds
-        zh_Hans: 缓存生存时间（秒）
-      default: 3600
-      required: false
-    - name: temp_file_cleanup
-      type: boolean
-      label:
-        en_US: Auto Cleanup Temp Files
-        zh_Hans: 自动清理临时文件
-      description:
-        en_US: Automatically clean up temporary files after conversion
-        zh_Hans: 转换后自动清理临时文件
-      default: true
-      required: false
-    
-    # 日志配置
-    - name: log_level
-      type: select
-      label:
-        en_US: Log Level
-        zh_Hans: 日志级别
-      description:
-        en_US: Set the logging level for the plugin
-        zh_Hans: 设置插件的日志级别
-      default: INFO
-      required: false
-      options:
-        - name: DEBUG
-          label:
-            en_US: Debug
-            zh_Hans: 调试
-        - name: INFO
-          label:
-            en_US: Info
-            zh_Hans: 信息
-        - name: WARNING
-          label:
-            en_US: Warning
-            zh_Hans: 警告
-        - name: ERROR
-          label:
-            en_US: Error
-            zh_Hans: 错误
+        zh_Hans: 调试输出
+      required: False
+      default: False
   components:
     EventListener:
       fromDirs:
-      - path: components/event_listener/
-    Command:
-      fromDirs:
-      - path: components/commands/
+        - path: components/event_listener/
 execution:
   python:
     path: main.py
-    attr: Markdown2IMGPlugin
-  dependencies:
-    - name: wkhtmltopdf
-      type: system
-      description:
-        en_US: 'HTML to image conversion engine (auto-configured)'
-        zh_Hans: 'HTML转图片引擎（自动配置）'
-      platforms:
-        linux:
-          type: builtin
-          description:
-            en_US: 'Uses built-in wkhtmltopdf binary (no installation required)'
-            zh_Hans: '使用内置wkhtmltopdf二进制（无需安装）'
-        windows:
-          type: system
-          description:
-            en_US: 'Requires system wkhtmltopdf installation'
-            zh_Hans: '需要安装系统wkhtmltopdf'
-          install_guide:
-            en_US: 'Download from https://wkhtmltopdf.org/downloads.html'
-            zh_Hans: '从 https://wkhtmltopdf.org/downloads.html 下载'
-        macos:
-          type: system
-          description:
-            en_US: 'Requires system wkhtmltopdf installation'
-            zh_Hans: '需要安装系统wkhtmltopdf'
-          install_guide:
-            en_US: 'Install with: brew install --cask wkhtmltopdf'
-            zh_Hans: '使用命令安装: brew install --cask wkhtmltopdf'
-        docker:
-          type: builtin
-          description:
-            en_US: 'Uses built-in wkhtmltopdf binary (container ready)'
-            zh_Hans: '使用内置wkhtmltopdf二进制（容器就绪）'
-  permissions:
-    - read_messages
-    - send_images
-    - file_access
-  runtime:
-    python_version: ">=3.10"
-    memory_limit: "256MB"
+    attr: Markdowm2ing
 
-    timeout: 30
