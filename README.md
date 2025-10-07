@@ -1,6 +1,6 @@
 # Markdown2IMG 插件
 
-##非图形化系统需要安装无头浏览器
+
 
 ##非图形化系统需要安装无头浏览器
 
@@ -60,10 +60,7 @@ lbp install HelloPlugin
 **需要手动安装 wkhtmltopdf：**
 
 ```bash
-# 1. 先安装插件
-lbp install HelloPlugin
-
-# 2. 安装 wkhtmltopdf（必需）
+# 1. 安装 wkhtmltopdf（必需）
 # 访问 https://wkhtmltopdf.org/downloads.html
 # 下载 Windows 版本并安装到默认路径
 # 安装完成后插件即可正常使用
@@ -74,10 +71,8 @@ lbp install HelloPlugin
 **需要通过 Homebrew 安装 wkhtmltopdf：**
 
 ```bash
-# 1. 先安装插件
-lbp install HelloPlugin
 
-# 2. 安装 wkhtmltopdf（必需）
+# 1. 安装 wkhtmltopdf（必需）
 brew install --cask wkhtmltopdf
 
 # 3. 重启插件即可使用
@@ -92,7 +87,6 @@ FROM python:3.10-slim
 
 # 安装 LangBot 和插件
 RUN pip install langbot
-COPY HelloPlugin /app/plugins/HelloPlugin
 
 # 插件会自动使用内置的 wkhtmltopdf
 # 无需额外的系统依赖
@@ -240,5 +234,6 @@ Base64编码输出
 
 
 MIT License
+
 
 
