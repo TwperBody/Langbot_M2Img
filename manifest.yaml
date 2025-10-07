@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Plugin
 metadata:
   author: Typer_Body
-  name: LangBot_MD2Ing
+  name: MarkDown2img
   repository: 'https://github.com/TwperBody/Langbot_M2Img/tree/main'
   version: 1.0.1
   description:
