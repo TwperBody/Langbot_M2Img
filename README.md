@@ -5,7 +5,7 @@
 ##非图形化系统需要安装无头浏览器
 ##重要的事情说三遍
 
-![开发群聊](https://img.shields.io/badge/472263434+-blue)
+![开发群聊](https://img.shields.io/badge/开发群聊-472263434+-blue)
 ![LangBot版本](https://img.shields.io/badge/LangBot-4.3+-blue)
 ![Python版本](https://img.shields.io/badge/Python-3.10+-blue)
 
