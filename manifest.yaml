@@ -3,8 +3,8 @@ kind: Plugin
 metadata:
   author: Typer_Body
   name: MarkDown2img
-  repository: 'https://github.com/TwperBody/Langbot_M2Img/tree/main'
-  version: 1.0.1
+  repository: 'https://github.com/TwperBody/Langbot_M2Img'
+  version: 1.0.2
   description:
     en_US: 将ai内容中的markdown消息进行转换成图片
     zh_Hans: 将ai内容中的markdown消息进行转换成图片
@@ -30,7 +30,7 @@ spec:
         zh_Hans: 转换触发权重
       required: true
       default: 2
-      name: side_of_markdown
+    - name: side_of_markdown
       type: integer
       label:
         zh_Hans: markdown图片宽度
@@ -38,7 +38,7 @@ spec:
         zh_Hans: markdown图片宽度
       required: true
       default: 800
-      name: test
+    - name: test
       type: boolean
       label:
         zh_Hans: 调试输出
