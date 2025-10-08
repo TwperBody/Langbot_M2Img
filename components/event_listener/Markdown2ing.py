@@ -54,6 +54,8 @@ side_of_markdown = 800
 test_mode = True
 #阻止回复
 breakout = True
+#是否输出图片
+out_photo = False
 
 class config:
     def __init__(self):
@@ -70,6 +72,8 @@ class config:
         global side_of_markdown
         global test_mode
         global breakout
+        global out_photo
+        out_photo = config.get("out_photo", False)
         breakout = config.get("breakout", True)
         get_url = config.get("get_url", False)
         get_markdown = config.get("get_markdown", 2)
@@ -82,6 +86,7 @@ class config:
             print(f"side_of_markdown: {side_of_markdown}")
             print(f"test_mode: {test_mode}")
             print(f"breakout: {breakout}")
+            print(f"out_photo: {out_photo}")
         return 0
 
 class MarkdownToBase64Converter:
@@ -511,6 +516,7 @@ class DefaultEventListener(
             config()
             global response_text 
             global get_markdown
+            global out_photo
             markdown_number = get_markdown
             response_text = event_context.event.response_text
             if test_mode:
@@ -559,7 +565,7 @@ class DefaultEventListener(
                             ])
                         )
                     if breakout:
-                        ctx.prevent_postorder()
+                        event_context.prevent_default()
                         
     def analyze_line_markdown(self, line: str) -> tuple[bool, list[str]]:
         """分析单行是否为Markdown格式"""
@@ -600,8 +606,9 @@ class DefaultEventListener(
         # 检查图片 (![alt](src))
         if re.search(r'!\[.*?\]\(.*?\)', line):
             features.append("图片")
-            if re.search(r'http', line):
-                Url = True
+            if out_photo:
+                if re.search(r'http', line):
+                    Url = True
             
         # 检查分割线 (---, ***)
         if re.search(r'^---+\s*$', line) or re.search(r'^\*\*\*+\s*$', line):
