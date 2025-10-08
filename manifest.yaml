@@ -4,7 +4,7 @@ metadata:
   author: Typer_Body
   name: MarkDown2img
   repository: 'https://github.com/TwperBody/Langbot_M2Img'
-  version: 1.0.2
+  version: 2.0.0
   description:
     en_US: 将ai内容中的markdown消息进行转换成图片
     zh_Hans: 将ai内容中的markdown消息进行转换成图片
@@ -20,15 +20,15 @@ spec:
         zh_Hans: 提取Markdown中的链接
       description:
         zh_Hans: 是否打开专门提取Markdown中的链接
-      required: true
-      default: false
+      required: True
+      default: False
     - name: get_markdown
       type: integer
       label:
         zh_Hans: markdown转义触发量
       description:
         zh_Hans: 转换触发权重
-      required: true
+      required: True
       default: 2
     - name: side_of_markdown
       type: integer
@@ -36,8 +36,16 @@ spec:
         zh_Hans: markdown图片宽度
       description:
         zh_Hans: markdown图片宽度
-      required: true
+      required: True
       default: 800
+    - name: breakout
+      type: boolean
+      label:
+        zh_Hans: 阻止未处理的markdown消息回复
+      description:
+        zh_Hans: 阻止未处理的markdown消息回复
+      required: True
+      default: True
     - name: test
       type: boolean
       label:

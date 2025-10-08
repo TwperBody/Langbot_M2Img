@@ -50,10 +50,18 @@ response_text = None #全局变量，导入消息
 get_url = False
 get_markdown = 2
 side_of_markdown = 800
+#调试输出
 test_mode = True
+#阻止回复
+breakout = True
 
 class config:
     def __init__(self):
+        super().__init__()
+        
+    async def initialize(self):
+        await super().initialize()
+
         #获取默认配置
         config = self.plugin.get_config()
         #拆分配置
@@ -61,6 +69,8 @@ class config:
         global get_markdown
         global side_of_markdown
         global test_mode
+        global breakout
+        breakout = config.get("breakout", True)
         get_url = config.get("get_url", False)
         get_markdown = config.get("get_markdown", 2)
         side_of_markdown = config.get("side_of_markdown", 800)
@@ -71,6 +81,8 @@ class config:
             print(f"get_markdown: {get_markdown}")
             print(f"side_of_markdown: {side_of_markdown}")
             print(f"test_mode: {test_mode}")
+            print(f"breakout: {breakout}")
+        return 0
 
 class MarkdownToBase64Converter:
     def __init__(self):
@@ -496,19 +508,28 @@ class DefaultEventListener(
         
         @self.handler(events.NormalMessageResponded)
         async def handler(event_context):
+            config()
             global response_text 
-            global test_config_a
-            markdown_number = test_config_a
+            global get_markdown
+            markdown_number = get_markdown
             response_text = event_context.event.response_text
-            print(response_text)
+            if test_mode:
+                print(response_text)
             print('\n')
             print("-" * 50)
             
             # 逐行分析Markdown格式
             lines = response_text.split('\n')
+            #记录url
+            url = ""
+            have_url = False
             for i, line in enumerate(lines, 1):
-                is_markdown, features = self.analyze_line_markdown(line.strip())
+                is_markdown, features, Url = self.analyze_line_markdown(line.strip())
                 status = "✓ Markdown" if is_markdown else "✗ 普通文本"
+                if Url:
+                    url += line.strip() + "\n"
+                    have_url = True
+                
                 if is_markdown:
                     markdown_number -=1
                 
@@ -517,22 +538,34 @@ class DefaultEventListener(
 
             if markdown_number <= 0:
                 converter = MarkdownToBase64Converter()
-                base64_image = "data:image/png;base64," + converter.convert(response_text)
-                # base64_image = converter.convert(response_text)
+                #base64_image = "data:image/png;base64," + converter.convert(response_text)
+                base64_image = converter.convert(response_text)
 
                 if base64_image:
                     print(f"✅ 转换成功！Base64 长度: {len(base64_image)}")
-                    print(base64_image)
-                    platform_message.MessageChain([
-                        platform_message.Image(url=base64_image)
-                    ])
-                    print("图片发送成功")
-                pass
-
-    
+                    if test_mode:
+                        print(base64_image)
+                    if have_url:
+                        await event_context.reply(
+                            platform_message.MessageChain([
+                                platform_message.Image(base64=base64_image),
+                                platform_message.Plain(text=url)
+                            ])
+                        )
+                    else:
+                        await event_context.reply(
+                            platform_message.MessageChain([
+                                platform_message.Image(base64=base64_image)
+                            ])
+                        )
+                    if breakout:
+                        ctx.prevent_postorder()
+                        
     def analyze_line_markdown(self, line: str) -> tuple[bool, list[str]]:
         """分析单行是否为Markdown格式"""
         features = []
+
+        Url = False
         
         # 检查标题 (#, ##, ###)
         if re.search(r'^#{1,6}\s+.+', line):
@@ -561,10 +594,14 @@ class DefaultEventListener(
         # 检查链接 ([文字](链接))
         if re.search(r'\[.*?\]\(.*?\)', line):
             features.append("链接")
+            if re.search(r'http', line):
+                Url = True
            
         # 检查图片 (![alt](src))
         if re.search(r'!\[.*?\]\(.*?\)', line):
             features.append("图片")
+            if re.search(r'http', line):
+                Url = True
             
         # 检查分割线 (---, ***)
         if re.search(r'^---+\s*$', line) or re.search(r'^\*\*\*+\s*$', line):
@@ -577,4 +614,4 @@ class DefaultEventListener(
         # 如果有任意Markdown特性，就认为是Markdown格式
         is_markdown = len(features) > 0
         
-        return is_markdown, features
+        return is_markdown, features, Url
