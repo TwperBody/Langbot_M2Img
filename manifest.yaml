@@ -6,7 +6,7 @@ metadata:
   repository: 'https://github.com/TwperBody/Langbot_M2Img'
   version: 2.1.0
   description:
-    en_US: 将ai内容中的markdown消息进行转换成图片
+    en_US: Convert markdown messages in ai content to images
     zh_Hans: 将ai内容中的markdown消息进行转换成图片
   label:
     en_US: Markdowm2ing
@@ -17,48 +17,60 @@ spec:
     - name: get_url
       type: boolean
       label: 
+        en_US: Get Markdown Link
         zh_Hans: 提取Markdown中的链接
       description:
+        en_US: Whether to open the special function to extract links in Markdown
         zh_Hans: 是否打开专门提取Markdown中的链接
       required: True
       default: False
     - name: get_markdown
       type: integer
       label:
+        en_US: Markdown Escape Trigger
         zh_Hans: markdown转义触发量
       description:
+        en_US: The weight of markdown escape trigger
         zh_Hans: 转换触发权重
       required: True
       default: 3
     - name: side_of_markdown
       type: integer
       label:
+        en_US: Markdown Image Width
         zh_Hans: markdown图片宽度
       description:
-        zh_Hans: markdown图片宽度
+        en_US: The width of the generated image
+        zh_Hans: 生成图片的宽度
       required: True
       default: 800
     - name: breakout
       type: boolean
       label:
+        en_US: Block unprocessed markdown message reply
         zh_Hans: 阻止未处理的markdown消息回复
       description:
+        en_US: Block unprocessed markdown message reply
         zh_Hans: 阻止未处理的markdown消息回复
       required: True
       default: True
     - name: out_photo
       type: boolean
-      label:
+      label:  
+        en_US: Output photo address
         zh_Hans: 输出图片地址
       description:
+        en_US: Whether to output the address of the generated image
         zh_Hans: 是否输出图片地址
       required: False
       default: False
     - name: test
       type: boolean
       label:
+        en_US: Debug output
         zh_Hans: 调试输出
       description:
+        en_US: Debug output
         zh_Hans: 调试输出
       required: False
       default: False
